@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Copyright 2020 Koichiro Watanabe
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="An easy way to browse Common Terminology Criteria for Adverse Events (CTCAE) v5.0">
+    <title>CTCAE 5.0</title>
+    <meta name="keywords" content="CTCAE, GitHub, Common Terminology Criteria for Adverse Events">
+    <meta name="author" content="Koichiro Watanabe">
+    <!-- css -->
+    <link href="ionic/ionic.min.css" rel="stylesheet">
+    <link href="style.min.css" rel="stylesheet">
+</head>
+
+<body ng-app="ctcaeApp">
+    <script id="tabs.html" type="text/ng-template">
+        <ion-view>
+        <ion-tabs class="tabs-icon-top tabs-light">
+            <ion-tab title="AEs" icon-off="ion-ios-medkit-outline" icon-on="ion-ios-medkit" href="#/tabs/home">
+                <ion-nav-view name="tabs-home"></ion-nav-view>
+            </ion-tab>
+            <ion-tab title="Info" icon-off="ion-ios-information-outline" icon-on="ion-ios-information" href="#/tabs/info">
+                <ion-nav-view name="tabs-info"></ion-nav-view>
+            </ion-tab>
+        </ion-tabs>
+    </ion-view>
+    </script>
+    <ion-nav-view animation="animation" class="selector"></ion-nav-view>
+    <script id="home.html" type="text/ng-template">
+        <div ng-controller="HomeCtrl">
+            <ion-header-bar class="bar bar-header bar-light">
+                <div class="button button-icon ion-navicon" ng-click="toggleLeft()"></div>
+                <h1 class="title" ng-bind-html="socTitle"></h1>
+                <div class="button button-icon ion-ios-search-strong" ng-click="showFilterBar()"></div>
+            </ion-header-bar>
+            <ion-side-menus>
+                <ion-side-menu-content>>
+                    <div class="bar bar-footer">
+                        <div class="title">Title</div>
+                    </div>
+                    <ion-content>
+                        <div class="list">
+                            <a class="{{item.soc ? 'item item-icon-left' : 'item-divider'}}" collection-repeat="item in shareData.getAe()" collection-item-height="getItemHeight(item)" collection-item-width="'100%'" ng-click="getItem(item.meddra)" style="width:100%;" ng-style="{'height': getItemHeight(item) + 1 + 'px'}"
+                                ng-disabled="!soc">
+                                <span ng-bind-html="shareData.encode(item.term) | highlight: (item.soc ? shareData.search : null)"></span><i class="button button-clear icon ion-ios-checkmark-outline" ng-if="item.soc" ng-class="{'red-flag': shareData.flags[item.meddra]}" ng-click="flagging(item.meddra, $event)"></i>
+                            </a>
+                        </div>
+                        <div ng-if="shareData.getAe().length < 1" style="text-align: center; margin-top:80px;">
+                            <div>No events found</div>
+                            <div ng-bind-html="shareData.socTitle"></div>
+                        </div>
+                    </ion-content>
+                </ion-side-menu-content>
+                <ion-side-menu side="left" expose-aside-when="large">
+                    <ion-content>
+                        <ion-item ng-click="getFlag()">
+                            <i class="icon ion-ios-checkmark-outline red-flag head"></i>Flagged
+                        </ion-item>
+                        <ion-item ng-click="getSoc(null)">
+                            All
+                        </ion-item>
+                        <ion-item ng-repeat="soc in shareData.socList" ng-click="getSoc(soc)" ng-bind-html="shareData.encode(soc)">
+                        </ion-item>
+                        <ion-item class="item-divider">
+                        </ion-item>
+                    </ion-content>
+                </ion-side-menu>
+            </ion-side-menus>
+        </div>
+    </script>
+    <script id="detail.html" type="text/ng-template">
+        <div ng-controller="DetailCtrl">
+            <ion-header-bar class="bar bar-header bar-light">
+                <a class="button button-icon ion-ios-arrow-back" ui-sref="tabs.home">
+                    Back
+                </a>
+            </ion-header-bar>
+            <ion-content class="padding">
+                <h4 class="padding" ng-bind-html="shareData.encode(shareData.detail[0].term) | highlight:shareData.search"></h4>
+                <div class="expandable-content">
+                    <div class="grades">
+                        <div class="row">
+                            <div class="col">
+                                <div class="grade-header">Grade 1</div>
+                                <div class="grade-content" ng-bind-html="shareData.encode(shareData.detail[0].g1)  | highlight:shareData.search"></div>
+                            </div>
+                            <div class="col">
+                                <div class="grade-header">Grade 2</div>
+                                <div class="grade-content" ng-bind-html="shareData.encode(shareData.detail[0].g2) | highlight:shareData.search"></div>
+                            </div>
+                            <div class="col">
+                                <div class="grade-header">Grade 3</div>
+                                <div class="grade-content" ng-bind-html="shareData.encode(shareData.detail[0].g3) | highlight:shareData.search"></div>
+                            </div>
+                            <div class="col">
+                                <div class="grade-header">Grade 4</div>
+                                <div class="grade-content" ng-bind-html="shareData.encode(shareData.detail[0].g4) | highlight:shareData.search"></div>
+                            </div>
+                            <div class="col">
+                                <div class="grade-header">Grade 5</div>
+                                <div class="grade-content" ng-bind-html="shareData.encode(shareData.detail[0].g5) | highlight:shareData.search"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notes">
+                        <div><b>SOC: </b><span style="text-transform: uppercase;" ng-bind-html="shareData.encode(shareData.detail[0].soc) | highlight:shareData.search"></span></div>
+                        <div><b>Definition: </b><span ng-bind-html="shareData.encode(shareData.detail[0].def) | highlight:shareData.search"></span></div>
+                        <div><b>Navigational Note: </b><span ng-bind-html="shareData.encode(shareData.detail[0].nav) | highlight:shareData.search"></span></div>
+                        <div><b>MedDRA: </b><span ng-bind-html="shareData.detail[0].meddra | highlight:shareData.search"></span></div>
+                    </div>
+                </div>
+
+            </ion-content>
+        </div>
+    </script>
+    <script id="info.html" type="text/ng-template">
+        <div ng-controller="InfoCtrl">
+        <ion-header-bar class="bar-light">
+            <h1 class="title">Info</h1>
+        </ion-header-bar>
+        <ion-content>
+            <div class="padding">  
+                <ul style="padding:8px 0;">
+                    <li>The following documents may be included in this application: Common Terminology Criteria for
+                        Adverse
+                        Events (CTCAE) v5.0 (2017-NOV-27) from
+                        <a href="https://ctep.cancer.gov/protocolDevelopment/electronic_applications/ctc.htm">https://ctep.cancer.gov/protocolDevelopment/electronic_applications/ctc.htm</a>
+                    </li>
+            </div>
+        </ion-content>
+    </div>
+    </script>
+    <!-- ionic/angularjs js instead of ionic.bundle.js -->
+    <script src="ionic/angular/angular.min.js"></script>
+    <script src="ionic/angular/angular-animate.min.js"></script>
+    <script src="ionic/angular/angular-sanitize.min.js"></script>
+    <script src="ionic/ionic.min.js"></script>
+    <script src="ionic/ionic-angular.min.js"></script>
+    <script src="ionic/angular-ui/angular-ui-router.min.js"></script>
+    <script src="ctcaev5.min.js"></script>
+    <script src="ionic/ionic.filter.bar.min.js"></script>
+    <script src="script.min.js"></script>
+</body>
+
+</html>
