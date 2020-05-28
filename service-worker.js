@@ -31,6 +31,7 @@ const targetUrl = [
                 'ionic/fonts/ionicons.ttf',
                 'ionic/fonts/ionicons.woff',
                 'images/barcode.gif',
+                'images/movie.mp4',
                 'images/logo/mail.svg',
                 'images/logo/facebook.svg',
                 'images/logo/twitter.svg',
